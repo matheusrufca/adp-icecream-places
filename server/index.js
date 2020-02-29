@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors')
 const { resolve } = require('path');
 
 const environment = require('./environment');
@@ -26,8 +27,6 @@ const customHost = argv.host || environment.HOST;
 const host = customHost || null; // Let http.Server use its default IPv6/4 host
 const prettyHost = customHost || 'localhost';
 
-apiServer.get(getIcecreamBestPlaces.path, getIcecreamBestPlaces.handler);
-
 // use the gzipped bundle
 server.get('*.js', (request, response, next) => {
   request.url = request.url + '.gz'; // eslint-disable-line
@@ -47,6 +46,8 @@ server.listen(port, host, async err => {
   // App.init();
 });
 
+apiServer.use(cors());
+apiServer.get(getIcecreamBestPlaces.path, getIcecreamBestPlaces.handler);
 apiServer.listen(apiServerPort, () => {
   logger.info(`ApiServer started at: http://localhost:${apiServerPort}`);
 });
