@@ -1,8 +1,8 @@
-import { yelpWebClientFactory } from './client-factory';
+const { yelpWebClientFactory } = require('./client-factory');
 
 const request = yelpWebClientFactory();
 
-export default async function fetchIceCreamPlaces(filters = {}) {
+async function fetchIceCreamPlaces(filters = {}) {
   const searchEndpoint = 'businesses/search';
   const defaultFilter = {
     limit: 50,
@@ -11,11 +11,12 @@ export default async function fetchIceCreamPlaces(filters = {}) {
   try {
     // eslint-disable-next-line no-console
     console.info('[yelpApi] request: /businesses/search');
-    const result = await request
-      .get(searchEndpoint, {
-        searchParams: { ...defaultFilter, ...filters },
-      })
-      .json();
+    const result  = await request.get(searchEndpoint, {
+      params: {
+        ...defaultFilter,
+        ...filters,
+      },
+    });
 
     // eslint-disable-next-line no-console
     console.debug('[yelpApi] response: /businesses/search', result);
@@ -27,3 +28,7 @@ export default async function fetchIceCreamPlaces(filters = {}) {
     throw error;
   }
 }
+
+module.exports = {
+  fetchIceCreamPlaces,
+};

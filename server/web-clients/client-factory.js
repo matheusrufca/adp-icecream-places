@@ -1,19 +1,15 @@
-import ky from 'ky';
+const axios = require('axios');
 
-export function yelpWebClientFactory() {
+function yelpWebClientFactory() {
   const apiDomain = process.env.YELP_API_DOMAIN;
-  const apiToken = process.env.YELP_API_TOKEN;
+  const apiKey = process.env.YELP_API_KEY;
 
-  return ky.extend({
-    prefixUrl: apiDomain,
-    retry: 3,
-    hooks: {
-      beforeRequest: [
-        request => {
-          request.headers.set('Authorization', `Bearer ${apiToken}`);
-          return request;
-        },
-      ],
-    },
+  return axios.create({
+    baseURL: apiDomain,
+    headers: { Authorization: `Bearer ${apiKey}` },
   });
 }
+
+module.exports = {
+  yelpWebClientFactory,
+};
