@@ -4,115 +4,66 @@
  * This is the first thing users see of our App, at the '/' route
  */
 
-import H2 from 'components/H2';
-import ReposList from 'components/ReposList';
-import { makeSelectError, makeSelectLoading, makeSelectRepos } from 'containers/App/selectors';
-import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet';
-import { FormattedMessage } from 'react-intl';
-import { useDispatch, useSelector } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import fetchIceCreamBestPlaces from 'resources/api/icecreams';
-import { useInjectReducer } from 'utils/injectReducer';
-import { useInjectSaga } from 'utils/injectSaga';
-import { loadRepos } from '../App/actions';
-import { changeUsername } from './actions';
-import AtPrefix from './AtPrefix';
-import CenteredSection from './CenteredSection';
-import Form from './Form';
-import Input from './Input';
-import messages from './messages';
-import reducer from './reducer';
-import saga from './saga';
-import Section from './Section';
-import { makeSelectUsername } from './selectors';
+import PlaceInfo, { PlaceInfoModel } from 'components/PlaceInfo/PlaceInfo';
+import React, { useEffect, useState } from 'react';
+import fetchIceCreamBestPlaces, { Place } from 'resources/api/icecreams';
 
-
-const key = 'home';
-
-const stateSelector = createStructuredSelector({
-  repos: makeSelectRepos(),
-  username: makeSelectUsername(),
-  loading: makeSelectLoading(),
-  error: makeSelectError(),
-});
+function placeInfoAdapter({
+  id,
+  name,
+  rating,
+  is_closed,
+  image_url,
+  url,
+  price,
+  phone,
+  location,
+}: Place): PlaceInfoModel {
+  const target: PlaceInfoModel = {
+    id,
+    name,
+    rating,
+    url: url,
+    price: price,
+    phone: phone,
+    imageUrl: image_url,
+    isOpen: !is_closed,
+    location: {
+      displayAddress: location.display_address[0],
+      zipCode: location.zip_code,
+      city: location.city,
+      state: location.state,
+      country: location.country,
+    },
+  };
+  return target;
+}
 
 export default function HomePage() {
-  const { repos, username, loading, error } = useSelector(stateSelector);
-
-  const dispatch = useDispatch();
-
-  // Not gonna declare event types here. No need. any is fine
-  const onChangeUsername = (evt: any) => dispatch(changeUsername(evt.target.value));
-  const onSubmitForm = (evt?: any) => {
-    if (evt !== undefined && evt.preventDefault) {
-      evt.preventDefault();
-    }
-    if (!username) {
-      return;
-    }
-    dispatch(loadRepos());
-  };
-
-  useInjectReducer({ key: key, reducer: reducer });
-  useInjectSaga({ key: key, saga: saga });
+  const [places, setPlaces] = useState<Place[]>([]);
 
   useEffect(() => {
-    // When initial state username is not null, submit the form to load repos
-    if (username && username.trim().length > 0) {
-      onSubmitForm();
+    try {
+      fetchIceCreamBestPlaces().then((places) => {
+        setPlaces(places);
+      });
+
+    } catch (error) {
+      console.error(error);
     }
-
-    fetchIceCreamBestPlaces();
-
   }, []);
 
-  const reposListProps = {
-    loading: loading,
-    error: error,
-    repos: repos,
-  };
-
   return (
-    <article>
-      <Helmet>
-        <title>Home Page</title>
-        <meta
-          name="description"
-          content="A React.js Boilerplate application homepage"
-        />
-      </Helmet>
-      <div>
-        <CenteredSection>
-          <H2>
-            <FormattedMessage {...messages.startProjectHeader} />
-          </H2>
-          <p>
-            <FormattedMessage {...messages.startProjectMessage} />
-          </p>
-        </CenteredSection>
-        <Section>
-          <H2>
-            <FormattedMessage {...messages.trymeHeader} />
-          </H2>
-          <Form onSubmit={onSubmitForm}>
-            <label htmlFor="username">
-              <FormattedMessage {...messages.trymeMessage} />
-              <AtPrefix>
-                <FormattedMessage {...messages.trymeAtPrefix} />
-              </AtPrefix>
-              <Input
-                id="username"
-                type="text"
-                placeholder="mxstbr"
-                value={username}
-                onChange={onChangeUsername}
-              />
-            </label>
-          </Form>
-          <ReposList {...reposListProps} />
-        </Section>
-      </div>
-    </article>
+    <>
+      <main>
+        <section>
+          {
+            places && places.length && places
+              .map(placeInfoAdapter)
+              .map((place) => (<PlaceInfo key={place.id} data={place} />))
+          }
+        </section>
+      </main>
+    </>
   );
 }

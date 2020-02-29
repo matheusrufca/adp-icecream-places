@@ -22,7 +22,7 @@ interface Location {
   cross_streets: string;
 }
 
-interface Place {
+export interface Place {
   id: string;
   alias: string;
   name: string;
