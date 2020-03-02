@@ -18,6 +18,7 @@ function placeInfoAdapter({
   price,
   phone,
   location,
+  review_count,
 }: Place): PlaceInfoModel {
   const target: PlaceInfoModel = {
     id,
@@ -26,6 +27,7 @@ function placeInfoAdapter({
     url: url,
     price: price,
     phone: phone,
+    reviewCount: review_count,
     imageUrl: image_url,
     isOpen: !is_closed,
     location: {
